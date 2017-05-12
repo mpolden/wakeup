@@ -64,8 +64,6 @@ func (d *Devices) remove(device Device) {
 func New(cacheFile string) *api { return &api{cacheFile: cacheFile, wake: wol.Wake} }
 
 func (a *api) readDevices() (*Devices, error) {
-	a.mu.RLock()
-	defer a.mu.RUnlock()
 	f, err := os.OpenFile(a.cacheFile, os.O_CREATE|os.O_RDONLY, 0644)
 	if err != nil {
 		return nil, err
@@ -95,8 +93,6 @@ func (a *api) writeDevice(device Device, add bool) error {
 	if err != nil {
 		return err
 	}
-	a.mu.Lock()
-	defer a.mu.Unlock()
 	f, err := os.OpenFile(a.cacheFile, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
@@ -117,6 +113,8 @@ func (a *api) writeDevice(device Device, add bool) error {
 func (a *api) defaultHandler(w http.ResponseWriter, r *http.Request) (interface{}, *Error) {
 	defer r.Body.Close()
 	if r.Method == http.MethodGet {
+		a.mu.RLock()
+		defer a.mu.RUnlock()
 		i, err := a.readDevices()
 		if err != nil {
 			return nil, &Error{err: err, Status: http.StatusInternalServerError, Message: "Could not unmarshal JSON"}
@@ -126,6 +124,8 @@ func (a *api) defaultHandler(w http.ResponseWriter, r *http.Request) (interface{
 	add := r.Method == http.MethodPost
 	remove := r.Method == http.MethodDelete
 	if add || remove {
+		a.mu.Lock()
+		defer a.mu.Unlock()
 		dec := json.NewDecoder(r.Body)
 		var device Device
 		if err := dec.Decode(&device); err != nil {
