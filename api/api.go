@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"sort"
 	"strings"
 	"sync"
 
@@ -85,6 +86,7 @@ func (a *api) readDevices() (*Devices, error) {
 	if i.Devices == nil {
 		i.Devices = make([]Device, 0)
 	}
+	sort.Slice(i.Devices, func(j, k int) bool { return i.Devices[j].MACAddress < i.Devices[k].MACAddress })
 	return &i, nil
 }
 

@@ -95,7 +95,7 @@ func TestRequests(t *testing.T) {
 		// Add multiple devices
 		{"POST", `{"macAddress":"AB:CD:EF:12:34:56"}`, "/api/v1/wake", "", 204},
 		{"POST", `{"macAddress":"12:34:56:AB:CD:EF"}`, "/api/v1/wake", "", 204},
-		{"GET", "", "/api/v1/wake", `{"devices":[{"macAddress":"AB:CD:EF:12:34:56"},{"macAddress":"12:34:56:AB:CD:EF"}]}`, 200},
+		{"GET", "", "/api/v1/wake", `{"devices":[{"macAddress":"12:34:56:AB:CD:EF"},{"macAddress":"AB:CD:EF:12:34:56"}]}`, 200},
 	}
 
 	for _, tt := range tests {
