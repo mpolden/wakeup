@@ -36,6 +36,7 @@ type Devices struct {
 }
 
 type Device struct {
+	Name       string `json:"name,omitempty"`
 	MACAddress string `json:"macAddress"`
 }
 
