@@ -23,7 +23,7 @@ func main() {
 	}
 
 	sourceIP := net.ParseIP(opts.SourceIP)
-	if sourceIP == nil {
+	if opts.SourceIP != "" && sourceIP == nil {
 		log.Fatalf("invalid ip: %s", opts.SourceIP)
 	}
 
