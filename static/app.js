@@ -138,7 +138,7 @@ wol.oncreate = wol.getDevices();
 wol.view = function() {
   return m('div.container', [
     m('div.row', [
-      m('div.col-md-6', m('h1', 'wakeonlan'))
+      m('div.col-md-6', m('h1', m('span', {class: 'glyphicon glyphicon-play'}), ' wake-on-lan'))
     ]),
     m('div.row', [
       m('div.col-md-6', wol.alertView())
