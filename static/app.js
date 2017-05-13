@@ -7,11 +7,11 @@ wol.state = {
     macAddress: ''
   },
   error: {},
-  setName: function (name) {
-    wol.state.deviceToWake.name = name;
+  setName: function (v) {
+    wol.state.deviceToWake.name = v;
   },
-  setMacAddress: function (macAddress) {
-    wol.state.deviceToWake.macAddress = macAddress;
+  setMacAddress: function (v) {
+    wol.state.deviceToWake.macAddress = v;
   },
   wake: function (device) {
     if (typeof device !== 'undefined') {
@@ -24,7 +24,7 @@ wol.state = {
   remove: function (device) {
     wol.removeDevice(device);
   },
-  update: function (data, device) {
+  add: function (device) {
     var exists = wol.state.devices.some(function (d) {
       return d.macAddress === device.macAddress;
     });
@@ -59,7 +59,7 @@ wol.getDevices = function() {
 wol.wakeDevice = function(device) {
   m.request({method: 'POST', url: '/api/v1/wake', data: device})
     .then(function (data) {
-      wol.state.update(data, device);
+      wol.state.add(device);
       return data;
     }, function (data) {
       wol.state.error = data;
@@ -94,7 +94,7 @@ wol.devicesView = function () {
     m('td', m('input[type=text]', {oninput: m.withAttr('value', wol.state.setName),
                                    value: wol.state.deviceToWake.name,
                                    class: 'form-control',
-                                   placeholder: 'Device name'})),
+                                   placeholder: 'Name'})),
     m('td', m('input[type=text]', {oninput: m.withAttr('value', wol.state.setMacAddress),
                                    value: wol.state.deviceToWake.macAddress,
                                    class: 'form-control',
@@ -124,7 +124,7 @@ wol.devicesView = function () {
   });
   return m('table.table', {class: ''},
            m('thead', m('tr', [
-             m('th', {class: 'col-md-2'}, 'Name'),
+             m('th', {class: 'col-md-2'}, 'Device name'),
              m('th', {class: 'col-md-2'}, 'MAC address'),
              m('th', {class: 'col-md-1'}),
              m('th', {class: 'col-md-1'})
