@@ -6,6 +6,10 @@ wol.state = {
     name: '',
     macAddress: ''
   },
+  success: {
+    timeout: null,
+    device: {}
+  },
   error: {},
   setName: function (v) {
     wol.state.deviceToWake.name = v;
@@ -17,6 +21,7 @@ wol.state = {
     if (typeof device !== 'undefined') {
       wol.wakeDevice(device);
     } else {
+      // Copy the deviceToWake object here to avoid input values binding
       wol.wakeDevice({name: wol.state.deviceToWake.name,
                       macAddress: wol.state.deviceToWake.macAddress});
     }
@@ -43,6 +48,16 @@ wol.state = {
     wol.state.setName('');
     wol.state.setMacAddress('');
     wol.state.error = {};
+  },
+  setSuccess: function (device) {
+    wol.state.success.device = device;
+    // Clear any pending timeout so that timeout is extended for each new
+    // wake-up
+    clearTimeout(wol.state.success.timeout);
+    wol.state.success.timeout = setTimeout(function () {
+      wol.state.success.device = {};
+      m.redraw();
+    }, 4000);
   }
 };
 
@@ -60,6 +75,7 @@ wol.wakeDevice = function(device) {
   m.request({method: 'POST', url: '/api/v1/wake', data: device})
     .then(function (data) {
       wol.state.add(device);
+      wol.state.setSuccess(device);
       return data;
     }, function (data) {
       wol.state.error = data;
@@ -82,10 +98,21 @@ wol.alertView = function () {
   var e = wol.state.error;
   var isError = Object.keys(e).length !== 0;
   var text = isError ? e.message + ' (' + e.status + ')' : '';
-  var cls = 'alert-danger alert-dismissible' + (isError ? '' : ' hidden');
+  var cls = 'alert-danger' + (isError ? '' : ' hidden');
   return m('div.alert', {class: cls, role: 'alert'}, [
     m('span', {class: 'glyphicon glyphicon-exclamation-sign'}),
     m('strong', ' Error: '), text
+  ]);
+};
+
+wol.successView = function () {
+  var device = wol.state.success.device;
+  var isSuccess = Object.keys(device).length !== 0;
+  var name = device.name ? ' (' + device.name + ')' : '';
+  var cls = 'alert-success' + (isSuccess ? '' : ' hidden');
+  return m('div.alert', {class: cls, role: 'alert'}, [
+    m('span', {class: 'glyphicon glyphicon-ok'}),
+    ' Successfully woke ', m('strong', device.macAddress), name
   ]);
 };
 
@@ -142,6 +169,9 @@ wol.view = function() {
     ]),
     m('div.row', [
       m('div.col-md-6', wol.alertView())
+    ]),
+    m('div.row', [
+      m('div.col-md-6', wol.successView())
     ]),
     m('div.row', [
       m('div.col-md-6', wol.devicesView())
