@@ -124,8 +124,6 @@ func (a *api) defaultHandler(w http.ResponseWriter, r *http.Request) (interface{
 	add := r.Method == http.MethodPost
 	remove := r.Method == http.MethodDelete
 	if add || remove {
-		a.mu.Lock()
-		defer a.mu.Unlock()
 		dec := json.NewDecoder(r.Body)
 		var device Device
 		if err := dec.Decode(&device); err != nil {
@@ -140,6 +138,8 @@ func (a *api) defaultHandler(w http.ResponseWriter, r *http.Request) (interface{
 				return nil, &Error{Status: http.StatusBadRequest, Message: fmt.Sprintf("Failed to wake device with address %s", device.MACAddress)}
 			}
 		}
+		a.mu.Lock()
+		defer a.mu.Unlock()
 		if err := a.writeDevice(device, add); err != nil {
 			return nil, &Error{err: err, Status: http.StatusInternalServerError, Message: "Could not unmarshal JSON"}
 		}
