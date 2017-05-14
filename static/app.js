@@ -117,17 +117,26 @@ wol.successView = function () {
 };
 
 wol.devicesView = function () {
+  var form = m('form', {
+    id: 'wake-form',
+    onsubmit: function (e) {
+      e.preventDefault();
+      wol.state.wake();
+    }
+  });
   var firstRow = m('tr', [
-    m('td', m('input[type=text]', {onchange: m.withAttr('value', wol.state.toWake.setName),
+    m('td', m('input[type=text]', {'form': form.attrs.id,
+                                   onchange: m.withAttr('value', wol.state.toWake.setName),
                                    value: wol.state.toWake.name,
                                    class: 'form-control',
                                    placeholder: 'Name'})),
-    m('td', m('input[type=text]', {onchange: m.withAttr('value', wol.state.toWake.setMacAddress),
+    m('td', m('input[type=text]', {'form': form.attrs.id,
+                                   onchange: m.withAttr('value', wol.state.toWake.setMacAddress),
                                    value: wol.state.toWake.macAddress,
                                    class: 'form-control',
                                    placeholder: 'MAC address'})),
-    m('td', m('button[type=button]', {class: 'btn btn-success btn-remove',
-                                      onclick: function () { wol.state.wake(); } },
+    m('td', m('button[type=submit]',
+              {'form': form.attrs.id, class: 'btn btn-success btn-remove'},
               m('span', {class: 'glyphicon glyphicon-off'}))),
     m('td')
   ]);
@@ -149,33 +158,28 @@ wol.devicesView = function () {
        )
     ]);
   });
-  return m('table.table', {class: ''},
-           m('thead', m('tr', [
-             m('th', {class: 'col-md-2'}, 'Device name'),
-             m('th', {class: 'col-md-2'}, 'MAC address'),
-             m('th', {class: 'col-md-1'}),
-             m('th', {class: 'col-md-1'})
-           ])),
-           m('tbody', [firstRow].concat(rows))
-          );
+  return [form,
+          m('table.table', {class: ''},
+            m('thead', m('tr', [
+              m('th', {class: 'col-md-2'}, 'Device name'),
+              m('th', {class: 'col-md-2'}, 'MAC address'),
+              m('th', {class: 'col-md-1'}),
+              m('th', {class: 'col-md-1'})
+            ])),
+            m('tbody', [firstRow].concat(rows))
+           )];
 };
 
 wol.oncreate = wol.getDevices();
 
 wol.view = function() {
   return m('div.container', [
-    m('div.row', [
+    m('div.row',
       m('div.col-md-6', m('h1', m('span', {class: 'glyphicon glyphicon-flash'}), ' wake-on-lan'))
-    ]),
-    m('div.row', [
-      m('div.col-md-6', wol.alertView())
-    ]),
-    m('div.row', [
-      m('div.col-md-6', wol.successView())
-    ]),
-    m('div.row', [
-      m('div.col-md-6', wol.devicesView())
-    ])
+    ),
+    m('div.row', m('div.col-md-6', wol.alertView())),
+    m('div.row', m('div.col-md-6', wol.successView())),
+    m('div.row', m('div.col-md-6', wol.devicesView()))
   ]);
 };
 
