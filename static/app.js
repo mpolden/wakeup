@@ -2,28 +2,28 @@ var wol = wol || {};
 
 wol.state = {
   devices: [],
-  deviceToWake: {
+  toWake: {
     name: '',
-    macAddress: ''
+    macAddress: '',
+    setName: function(v) {
+      wol.state.toWake.name = v;
+    },
+    setMacAddress: function(v) {
+      wol.state.toWake.macAddress = v;
+    },
   },
   success: {
     timeout: null,
     device: {}
   },
   error: {},
-  setName: function (v) {
-    wol.state.deviceToWake.name = v;
-  },
-  setMacAddress: function (v) {
-    wol.state.deviceToWake.macAddress = v;
-  },
   wake: function (device) {
     if (typeof device !== 'undefined') {
       wol.wakeDevice(device);
     } else {
-      // Copy the deviceToWake object here to avoid input values binding
-      wol.wakeDevice({name: wol.state.deviceToWake.name,
-                      macAddress: wol.state.deviceToWake.macAddress});
+      // Copy the toWake object here to avoid input values binding
+      wol.wakeDevice({name: wol.state.toWake.name,
+                      macAddress: wol.state.toWake.macAddress});
     }
   },
   remove: function (device) {
@@ -45,8 +45,8 @@ wol.state = {
         return 0;
       });
     }
-    wol.state.setName('');
-    wol.state.setMacAddress('');
+    wol.state.toWake.setName('');
+    wol.state.toWake.setMacAddress('');
     wol.state.error = {};
   },
   setSuccess: function (device) {
@@ -118,12 +118,12 @@ wol.successView = function () {
 
 wol.devicesView = function () {
   var firstRow = m('tr', [
-    m('td', m('input[type=text]', {oninput: m.withAttr('value', wol.state.setName),
-                                   value: wol.state.deviceToWake.name,
+    m('td', m('input[type=text]', {onchange: m.withAttr('value', wol.state.toWake.setName),
+                                   value: wol.state.toWake.name,
                                    class: 'form-control',
                                    placeholder: 'Name'})),
-    m('td', m('input[type=text]', {oninput: m.withAttr('value', wol.state.setMacAddress),
-                                   value: wol.state.deviceToWake.macAddress,
+    m('td', m('input[type=text]', {onchange: m.withAttr('value', wol.state.toWake.setMacAddress),
+                                   value: wol.state.toWake.macAddress,
                                    class: 'form-control',
                                    placeholder: 'MAC address'})),
     m('td', m('button[type=button]', {class: 'btn btn-success btn-remove',
