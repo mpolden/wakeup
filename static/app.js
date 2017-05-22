@@ -99,7 +99,7 @@ wol.alertView = function () {
   var isError = Object.keys(e).length !== 0;
   var text = isError ? e.message + ' (' + e.status + ')' : '';
   var cls = 'alert-danger' + (isError ? '' : ' hidden');
-  return m('div.alert', {class: cls, role: 'alert'}, [
+  return m('div.alert', {class: cls}, [
     m('span', {class: 'glyphicon glyphicon-exclamation-sign'}),
     m('strong', ' Error: '), text
   ]);
@@ -110,7 +110,7 @@ wol.successView = function () {
   var isSuccess = Object.keys(device).length !== 0;
   var name = device.name ? ' (' + device.name + ')' : '';
   var cls = 'alert-success' + (isSuccess ? '' : ' hidden');
-  return m('div.alert', {class: cls, role: 'alert'}, [
+  return m('div.alert', {class: cls}, [
     m('span', {class: 'glyphicon glyphicon-ok'}),
     ' Successfully woke ', m('strong', device.macAddress), name
   ]);
