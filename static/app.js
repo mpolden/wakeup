@@ -170,7 +170,7 @@ wol.devicesView = function () {
            )];
 };
 
-wol.oncreate = wol.getDevices();
+wol.oncreate = wol.getDevices;
 
 wol.view = function() {
   return m('div.container', [
