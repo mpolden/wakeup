@@ -13,7 +13,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/mpolden/wakeonlan/wol"
+	"github.com/mpolden/wakeup/wol"
 )
 
 type wake func(net.IP, net.HardwareAddr) error

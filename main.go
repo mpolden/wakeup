@@ -7,7 +7,7 @@ import (
 	"os"
 
 	flags "github.com/jessevdk/go-flags"
-	"github.com/mpolden/wakeonlan/api"
+	"github.com/mpolden/wakeup/api"
 )
 
 func main() {

@@ -1,13 +1,13 @@
-# wakeonlan
+# wakeup
 
-[![Build Status](https://travis-ci.org/mpolden/wakeonlan.svg?branch=master)](https://travis-ci.org/mpolden/wakeonlan)
+[![Build Status](https://travis-ci.org/mpolden/wakeup.svg?branch=master)](https://travis-ci.org/mpolden/wakeup)
 
 ## Usage
 
 ```
-$ wakeonlan -h
+$ wakeup -h
 Usage:
-  wakeonlan [OPTIONS]
+  wakeup [OPTIONS]
 
 Application Options:
   -c, --cache=FILE     Path to cache file
