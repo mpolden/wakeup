@@ -96,6 +96,11 @@ func TestRequests(t *testing.T) {
 		{"POST", `{"macAddress":"AB:CD:EF:12:34:56"}`, "/api/v1/wake", "", 204},
 		{"POST", `{"macAddress":"12:34:56:AB:CD:EF"}`, "/api/v1/wake", "", 204},
 		{"GET", "", "/api/v1/wake", `{"devices":[{"macAddress":"12:34:56:AB:CD:EF"},{"macAddress":"AB:CD:EF:12:34:56"}]}`, 200},
+		{"DELETE", `{"macAddress":"AB:CD:EF:12:34:56"}`, "/api/v1/wake", "", 204},
+		{"DELETE", `{"macAddress":"12:34:56:AB:CD:EF"}`, "/api/v1/wake", "", 204},
+		// Add device with name
+		{"POST", `{"name":"foo","macAddress":"AB:CD:EF:12:34:56"}`, "/api/v1/wake", "", 204},
+		{"GET", "", "/api/v1/wake", `{"devices":[{"name":"foo","macAddress":"AB:CD:EF:12:34:56"}]}`, 200},
 	}
 
 	for _, tt := range tests {
