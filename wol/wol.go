@@ -3,6 +3,7 @@ package wol
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"net"
 )
 
@@ -31,19 +32,18 @@ func Wake(src net.IP, hwAddr net.HardwareAddr) error {
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 	p := NewMagicPacket(hwAddr)
 	n, err := conn.Write([]byte(p))
-	if err != nil {
-		return err
+	if err == nil && n < len(p) {
+		return io.ErrShortWrite
 	}
-	if n != len(p) {
-		return fmt.Errorf("failed writing magic packet: %d of % bytes written", n, len(p))
+	if err1 := conn.Close(); err1 != nil {
+		err = err1
 	}
-	return nil
+	return err
 }
 
-// WakeString sends a magic packet for macAddr to the broadcast address. If srcIP is not empty, it is used as the local
+// WakeString sends a magic packet for macAddr to the broadcast address. If srcIP non-empty, it is used as the local
 // address for the broadcast.
 func WakeString(srcIP, macAddr string) error {
 	hwAddr, err := net.ParseMAC(macAddr)
