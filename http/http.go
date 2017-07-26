@@ -1,4 +1,4 @@
-package api
+package http
 
 import (
 	"encoding/json"
@@ -16,14 +16,14 @@ import (
 	"github.com/mpolden/wakeup/wol"
 )
 
-type wake func(net.IP, net.HardwareAddr) error
+type wakeFunc func(net.IP, net.HardwareAddr) error
 
-type api struct {
+type Server struct {
 	SourceIP  net.IP
 	StaticDir string
 	cacheFile string
 	mu        sync.RWMutex
-	wake
+	wakeFunc
 }
 
 type Error struct {
@@ -61,10 +61,10 @@ func (d *Devices) remove(device Device) {
 	d.Devices = keep
 }
 
-func New(cacheFile string) *api { return &api{cacheFile: cacheFile, wake: wol.Wake} }
+func New(cacheFile string) *Server { return &Server{cacheFile: cacheFile, wakeFunc: wol.Wake} }
 
-func (a *api) readDevices() (*Devices, error) {
-	f, err := os.OpenFile(a.cacheFile, os.O_CREATE|os.O_RDONLY, 0644)
+func (s *Server) readDevices() (*Devices, error) {
+	f, err := os.OpenFile(s.cacheFile, os.O_CREATE|os.O_RDONLY, 0644)
 	if err != nil {
 		return nil, err
 	}
@@ -88,12 +88,12 @@ func (a *api) readDevices() (*Devices, error) {
 	return &i, nil
 }
 
-func (a *api) writeDevice(device Device, add bool) error {
-	i, err := a.readDevices()
+func (s *Server) writeDevice(device Device, add bool) error {
+	i, err := s.readDevices()
 	if err != nil {
 		return err
 	}
-	f, err := os.OpenFile(a.cacheFile, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
+	f, err := os.OpenFile(s.cacheFile, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
 	}
@@ -110,12 +110,12 @@ func (a *api) writeDevice(device Device, add bool) error {
 	return nil
 }
 
-func (a *api) defaultHandler(w http.ResponseWriter, r *http.Request) (interface{}, *Error) {
+func (s *Server) defaultHandler(w http.ResponseWriter, r *http.Request) (interface{}, *Error) {
 	defer r.Body.Close()
 	if r.Method == http.MethodGet {
-		a.mu.RLock()
-		defer a.mu.RUnlock()
-		i, err := a.readDevices()
+		s.mu.RLock()
+		defer s.mu.RUnlock()
+		i, err := s.readDevices()
 		if err != nil {
 			return nil, &Error{err: err, Status: http.StatusInternalServerError, Message: "Could not unmarshal JSON"}
 		}
@@ -134,13 +134,13 @@ func (a *api) defaultHandler(w http.ResponseWriter, r *http.Request) (interface{
 			if err != nil {
 				return nil, &Error{Status: http.StatusBadRequest, Message: fmt.Sprintf("Invalid MAC address: %s", device.MACAddress)}
 			}
-			if err := a.wake(a.SourceIP, macAddress); err != nil {
+			if err := s.wakeFunc(s.SourceIP, macAddress); err != nil {
 				return nil, &Error{Status: http.StatusBadRequest, Message: fmt.Sprintf("Failed to wake device with address %s", device.MACAddress)}
 			}
 		}
-		a.mu.Lock()
-		defer a.mu.Unlock()
-		if err := a.writeDevice(device, add); err != nil {
+		s.mu.Lock()
+		defer s.mu.Unlock()
+		if err := s.writeDevice(device, add); err != nil {
 			return nil, &Error{err: err, Status: http.StatusInternalServerError, Message: "Could not unmarshal JSON"}
 		}
 		w.WriteHeader(http.StatusNoContent)
@@ -191,14 +191,18 @@ func requestFilter(next http.Handler) http.Handler {
 	})
 }
 
-func (a *api) Handler() http.Handler {
+func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
-	mux.Handle("/api/v1/wake", appHandler(a.defaultHandler))
+	mux.Handle("/api/v1/wake", appHandler(s.defaultHandler))
 	// Return 404 in JSON for all unknown requests under /api/
 	mux.Handle("/api/", appHandler(notFoundHandler))
-	if a.StaticDir != "" {
-		fs := http.StripPrefix("/static/", http.FileServer(http.Dir(a.StaticDir)))
+	if s.StaticDir != "" {
+		fs := http.StripPrefix("/static/", http.FileServer(http.Dir(s.StaticDir)))
 		mux.Handle("/static/", fs)
 	}
 	return requestFilter(mux)
+}
+
+func (s *Server) ListenAndServe(addr string) error {
+	return http.ListenAndServe(addr, s.Handler())
 }

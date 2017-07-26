@@ -3,11 +3,10 @@ package main
 import (
 	"log"
 	"net"
-	"net/http"
 	"os"
 
 	flags "github.com/jessevdk/go-flags"
-	"github.com/mpolden/wakeup/api"
+	"github.com/mpolden/wakeup/http"
 )
 
 func main() {
@@ -27,11 +26,11 @@ func main() {
 		log.Fatalf("invalid ip: %s", opts.SourceIP)
 	}
 
-	api := api.New(opts.CacheFile)
-	api.StaticDir = opts.StaticDir
-	api.SourceIP = sourceIP
+	server := http.New(opts.CacheFile)
+	server.StaticDir = opts.StaticDir
+	server.SourceIP = sourceIP
 	log.Printf("Listening on %s", opts.Listen)
-	if err := http.ListenAndServe(opts.Listen, api.Handler()); err != nil {
+	if err := server.ListenAndServe(opts.Listen); err != nil {
 		log.Fatal(err)
 	}
 }

@@ -1,4 +1,4 @@
-package api
+package http
 
 import (
 	"io/ioutil"
@@ -54,8 +54,8 @@ func testServer() (*httptest.Server, string) {
 	if err != nil {
 		panic(err)
 	}
-	api := api{
-		wake:      func(net.IP, net.HardwareAddr) error { return nil },
+	api := Server{
+		wakeFunc:  func(net.IP, net.HardwareAddr) error { return nil },
 		cacheFile: file.Name(),
 	}
 	log.SetOutput(ioutil.Discard)
