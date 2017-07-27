@@ -7,13 +7,11 @@ import (
 	"net"
 )
 
-type wakeFunc func(net.IP, net.HardwareAddr) error
-
 // Bridge represents a Wake-on-LAN bridge.
 type Bridge struct {
 	conn     io.Reader
 	lastSent MagicPacket
-	wakeFunc
+	wakeFunc func(net.IP, net.HardwareAddr) error
 }
 
 func isMagicPacket(p MagicPacket) bool {
@@ -40,11 +38,11 @@ func (b *Bridge) ReadMagicPacket() (MagicPacket, error) {
 	if err != nil {
 		return nil, err
 	}
-	p := buf[:n]
-	if !isMagicPacket(p) {
-		return nil, fmt.Errorf("invalid magic packet: %s", p)
+	mp := buf[:n]
+	if !isMagicPacket(mp) {
+		return nil, fmt.Errorf("invalid magic packet: %x", mp)
 	}
-	return p, nil
+	return mp, nil
 }
 
 // Forward reads a magic packet and writes to the bridged network using src as the local address.

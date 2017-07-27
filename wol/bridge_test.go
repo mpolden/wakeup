@@ -6,26 +6,6 @@ import (
 	"testing"
 )
 
-var magicPacket = []byte{
-	255, 255, 255, 255, 255, 255,
-	101, 172, 129, 19, 141, 63,
-	101, 172, 129, 19, 141, 63,
-	101, 172, 129, 19, 141, 63,
-	101, 172, 129, 19, 141, 63,
-	101, 172, 129, 19, 141, 63,
-	101, 172, 129, 19, 141, 63,
-	101, 172, 129, 19, 141, 63,
-	101, 172, 129, 19, 141, 63,
-	101, 172, 129, 19, 141, 63,
-	101, 172, 129, 19, 141, 63,
-	101, 172, 129, 19, 141, 63,
-	101, 172, 129, 19, 141, 63,
-	101, 172, 129, 19, 141, 63,
-	101, 172, 129, 19, 141, 63,
-	101, 172, 129, 19, 141, 63,
-	101, 172, 129, 19, 141, 63,
-}
-
 func TestBridgeRead(t *testing.T) {
 	b := Bridge{conn: bytes.NewReader(magicPacket)}
 	mp, err := b.ReadMagicPacket()
@@ -38,8 +18,9 @@ func TestBridgeRead(t *testing.T) {
 	}
 
 	b.conn = bytes.NewReader([]byte{1, 2, 3})
-	if _, err := b.ReadMagicPacket(); err == nil {
-		t.Fatal("expected error")
+	want = "invalid magic packet: 010203"
+	if _, err := b.ReadMagicPacket(); err.Error() != want {
+		t.Errorf("got %q, want %q", err.Error(), want)
 	}
 }
 
