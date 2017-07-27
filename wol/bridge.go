@@ -14,10 +14,6 @@ type Bridge struct {
 	wakeFunc func(net.IP, net.HardwareAddr) error
 }
 
-func isMagicPacket(p MagicPacket) bool {
-	return len(p) == 102 && bytes.Equal(p[:6], bcastAddr)
-}
-
 // Listen listens for magic packets on the given addr.
 func Listen(addr string) (*Bridge, error) {
 	udpAddr, err := net.ResolveUDPAddr("udp4", addr)
@@ -39,7 +35,7 @@ func (b *Bridge) ReadMagicPacket() (MagicPacket, error) {
 		return nil, err
 	}
 	mp := buf[:n]
-	if !isMagicPacket(mp) {
+	if !IsMagicPacket(mp) {
 		return nil, fmt.Errorf("invalid magic packet: %x", mp)
 	}
 	return mp, nil

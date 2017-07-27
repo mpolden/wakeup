@@ -36,3 +36,19 @@ func TestNewMagicPacket(t *testing.T) {
 		t.Errorf("want %v, got %v", magicPacket, got)
 	}
 }
+
+func TestIsMagicPacket(t *testing.T) {
+	var tests = []struct {
+		in  []byte
+		out bool
+	}{
+		{[]byte{}, false},
+		{[]byte{1, 2, 3}, false},
+		{magicPacket, true},
+	}
+	for i, tt := range tests {
+		if IsMagicPacket(tt.in) != tt.out {
+			t.Errorf("#%d: want %t for %v, got %t", i, tt.out, tt.in, !tt.out)
+		}
+	}
+}

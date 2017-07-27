@@ -11,6 +11,12 @@ var bcastAddr = []byte{255, 255, 255, 255, 255, 255}
 
 type MagicPacket []byte
 
+// HardwareAddr returns the physical address of the target computer.
+func (p MagicPacket) HardwareAddr() net.HardwareAddr {
+	off := len(bcastAddr)
+	return net.HardwareAddr(p[off : off+off])
+}
+
 // Create a magic packet for the given hwAddr.
 func NewMagicPacket(hwAddr net.HardwareAddr) MagicPacket {
 	const hwAddrN = 16
@@ -21,10 +27,9 @@ func NewMagicPacket(hwAddr net.HardwareAddr) MagicPacket {
 	return p
 }
 
-// HardwareAddr returns the physical address of the target computer.
-func (p MagicPacket) HardwareAddr() net.HardwareAddr {
-	off := len(bcastAddr)
-	return net.HardwareAddr(p[off : off+off])
+// IsMagicPacket reports whether the byte array is a magic packet.
+func IsMagicPacket(b []byte) bool {
+	return len(b) == 102 && bytes.Equal(b[:6], bcastAddr)
 }
 
 // Wake sends a magic packet for hwAddr to the broadcast address. If src is not nil, it is used as the local address for
