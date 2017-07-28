@@ -9,7 +9,7 @@ import (
 
 // Bridge represents a Wake-on-LAN bridge.
 type Bridge struct {
-	conn     io.Reader
+	conn     io.ReadCloser
 	lastSent MagicPacket
 	wakeFunc func(net.IP, net.HardwareAddr) error
 }
@@ -27,7 +27,10 @@ func Listen(addr string) (*Bridge, error) {
 	return &Bridge{conn: conn, wakeFunc: Wake}, nil
 }
 
-// ReadMagicPacket reads magic packets using the bridge
+// Close closes the connection.
+func Close(b *Bridge) error { return b.conn.Close() }
+
+// ReadMagicPacket reads magic packets using the bridge.
 func (b *Bridge) ReadMagicPacket() (MagicPacket, error) {
 	buf := make([]byte, 4096)
 	n, err := b.conn.Read(buf)
@@ -41,7 +44,7 @@ func (b *Bridge) ReadMagicPacket() (MagicPacket, error) {
 	return mp, nil
 }
 
-// Forward reads a magic packet and writes to the bridged network using src as the local address.
+// Forward reads a magic packet and writes it back to the network using src as the local address.
 func (b *Bridge) Forward(src net.IP) (MagicPacket, error) {
 	mp, err := b.ReadMagicPacket()
 	if err != nil {

@@ -2,12 +2,17 @@ package wol
 
 import (
 	"bytes"
+	"io"
 	"net"
 	"testing"
 )
 
+type mockConn struct{ io.Reader }
+
+func (c *mockConn) Close() error { return nil }
+
 func TestBridgeRead(t *testing.T) {
-	b := Bridge{conn: bytes.NewReader(magicPacket)}
+	b := Bridge{conn: &mockConn{bytes.NewReader(magicPacket)}}
 	mp, err := b.ReadMagicPacket()
 	if err != nil {
 		t.Fatal(err)
@@ -17,7 +22,7 @@ func TestBridgeRead(t *testing.T) {
 		t.Errorf("want %s, got %s", want, got)
 	}
 
-	b.conn = bytes.NewReader([]byte{1, 2, 3})
+	b.conn = &mockConn{bytes.NewReader([]byte{1, 2, 3})}
 	want = "invalid magic packet: 010203"
 	if _, err := b.ReadMagicPacket(); err.Error() != want {
 		t.Errorf("got %q, want %q", err.Error(), want)
@@ -31,7 +36,7 @@ func TestBridgeForward(t *testing.T) {
 		return nil
 	}
 	b := Bridge{
-		conn:     bytes.NewReader(magicPacket),
+		conn:     &mockConn{bytes.NewReader(magicPacket)},
 		wakeFunc: wake,
 	}
 	if _, err := b.Forward(nil); err != nil {
@@ -51,7 +56,7 @@ func TestBridgeForwardPreventsLoop(t *testing.T) {
 	}
 	var buf bytes.Buffer
 	b := Bridge{
-		conn:     &buf,
+		conn:     &mockConn{&buf},
 		wakeFunc: wake,
 	}
 	// Same magic packet is received a second time, this likely means that we sent it ourself
