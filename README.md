@@ -6,7 +6,7 @@
 sending [Wake-on-LAN](https://en.wikipedia.org/wiki/Wake-on-LAN) messages to a
 target device.
 
-## Usage
+## `wakeup` usage
 
 ```
 $ wakeup -h
@@ -21,6 +21,21 @@ Application Options:
 
 Help Options:
   -h, --help           Show this help message
+```
+
+## `wakeupbr` usage
+
+```
+$ wakeupbr -h
+Usage:
+  wakeupbr [OPTIONS]
+
+Application Options:
+  -l, --listen=IP     Listen address to use when listening for WOL packets (default: 0.0.0.0:9)
+  -o, --forward=IP    Address of interface where received WOL packets should be forwarded
+
+Help Options:
+  -h, --help          Show this help message
 ```
 
 ## API
@@ -57,3 +72,50 @@ A basic JavaScript front-end is included. It can be served by `wakeup` by
 passing the path to `static` as the `-s` option.
 
 ![Front-end screenshot](static/screenshot.png)
+
+## Bridge
+
+The `wakeupbr` program acts as bridge for Wake-on-LAN packets. The program
+listens for Wake-on-LAN packets on the incoming interface and forwards any
+received packets to the outgoing interface.
+
+Example:
+
+A device has two interfaces, one wired (`eth0`) with the address `172.16.0.10`
+and one wireless (`wlan0`) with the address `10.0.0.10`. The device we want to
+wake is on the wired network. We want to pick up Wake-on-LAN packets that are
+received on the wireless network and send them out on the wired network. This
+can be accomplished with the following command:
+
+```
+$ wakeupbr -l 10.0.0.10 -o 172.16.0.10
+```
+
+Any Wake-on-LAN packet that is broadcast on the wireless network will then be
+forwarded. When a packet is received and forwarded, a message will be logged:
+
+```
+2017/07/28 19:34:54 Forwarded magic packet for AA:BB:CC:12:34:56 to 172.16.0.10
+```
+
+The command above listens on UDP port 9 for Wake-on-LAN packets. As port 9 is a
+privileged port, `wakeupbr` must be run as root. This is less than ideal, but
+Wake-on-LAN packets are always broadcast to port 9. To avoid binding to a
+privileged port we can use a `iptables` rule:
+
+```
+$ iptables -t nat -A PREROUTING -i wlan0 -p udp --dport 9 -j REDIRECT --to-port 9000
+```
+
+You should also ensure that traffic to UDP port 9 is accepted by the `INPUT` chain:
+
+```
+$ iptables -A INPUT -p udp --dport 9000 -j ACCEPT
+```
+
+This will redirect all packets on UDP port 9 to port 9000. `wakeupbr` can then
+listen on port 9000 and run as a regular user:
+
+```
+$ wakeupbr -l 10.0.0.10:9000 -o 172.16.0.10
+```
