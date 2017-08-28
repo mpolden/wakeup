@@ -107,7 +107,8 @@ privileged port we can use a `iptables` rule:
 $ iptables -t nat -A PREROUTING -i wlan0 -p udp --dport 9 -j REDIRECT --to-port 9000
 ```
 
-You should also ensure that traffic to UDP port 9 is accepted by the `INPUT` chain:
+You should also ensure that traffic to UDP port 9000 is accepted by the `INPUT`
+chain:
 
 ```
 $ iptables -A INPUT -p udp --dport 9000 -j ACCEPT
