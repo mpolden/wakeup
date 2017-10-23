@@ -62,7 +62,7 @@ wol.state = {
 };
 
 wol.getDevices = function() {
-  m.request({method: 'GET', url: '/api/v1/wake'})
+  m.request({method: 'GET', url: 'api/v1/wake'})
     .then(function (data) {
       wol.state.devices = data.devices;
       return data;
@@ -72,7 +72,7 @@ wol.getDevices = function() {
 };
 
 wol.wakeDevice = function(device) {
-  m.request({method: 'POST', url: '/api/v1/wake', data: device})
+  m.request({method: 'POST', url: 'api/v1/wake', data: device})
     .then(function (data) {
       wol.state.add(device);
       wol.state.setSuccess(device);
@@ -83,7 +83,7 @@ wol.wakeDevice = function(device) {
 };
 
 wol.removeDevice = function (device) {
-  m.request({method: 'DELETE', url: '/api/v1/wake', data: device})
+  m.request({method: 'DELETE', url: 'api/v1/wake', data: device})
     .then(function (data) {
       wol.state.devices = wol.state.devices.filter(function (d) {
         return d.macAddress !== device.macAddress;
