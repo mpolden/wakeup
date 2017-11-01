@@ -4,6 +4,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"strings"
 
 	flags "github.com/jessevdk/go-flags"
 	"github.com/mpolden/wakeup/http"
@@ -29,7 +30,11 @@ func main() {
 	server := http.New(opts.CacheFile)
 	server.StaticDir = opts.StaticDir
 	server.SourceIP = sourceIP
-	log.Printf("Listening on %s", opts.Listen)
+	if strings.HasPrefix(opts.Listen, ":") {
+		log.Printf("Serving at http://0.0.0.0%s", opts.Listen)
+	} else {
+		log.Printf("Serving at http://%s", opts.Listen)
+	}
 	if err := server.ListenAndServe(opts.Listen); err != nil {
 		log.Fatal(err)
 	}
