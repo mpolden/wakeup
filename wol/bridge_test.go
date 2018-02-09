@@ -13,7 +13,7 @@ func (c *mockConn) Close() error { return nil }
 
 func TestBridgeRead(t *testing.T) {
 	b := Bridge{conn: &mockConn{bytes.NewReader(magicPacket)}}
-	mp, err := b.ReadMagicPacket()
+	mp, err := b.read()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -24,7 +24,7 @@ func TestBridgeRead(t *testing.T) {
 
 	b.conn = &mockConn{bytes.NewReader([]byte{1, 2, 3})}
 	want = "invalid magic packet: 010203"
-	if _, err := b.ReadMagicPacket(); err.Error() != want {
+	if _, err := b.read(); err.Error() != want {
 		t.Errorf("got %q, want %q", err.Error(), want)
 	}
 }
