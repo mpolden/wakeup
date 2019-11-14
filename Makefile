@@ -4,10 +4,7 @@ XBINS := $(XGOOS)_$(XGOARCH)/wakeup $(XGOOS)_$(XGOARCH)/wakeupbr
 
 .PHONY: $(XBINS)
 
-all: deps test vet install
-
-fmt:
-	go fmt ./...
+all: lint test install
 
 test:
 	go test ./...
@@ -15,8 +12,10 @@ test:
 vet:
 	go vet ./...
 
-deps:
-	go get -d -v ./...
+check-fmt:
+	bash -c "diff --line-format='%L' <(echo -n) <(gofmt -d -s .)"
+
+lint: check-fmt vet
 
 install:
 	go install ./...
